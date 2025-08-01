@@ -1,0 +1,27 @@
+{
+  "name": "youtube-downloader-vercel",
+  "version": "1.0.0",
+  "description": "YouTube Video Downloader with Vercel Serverless Functions",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for Vercel Functions'",
+    "deploy": "vercel --prod",
+    "start": "vercel dev"
+  },
+  "keywords": [
+    "youtube",
+    "downloader",
+    "vercel",
+    "serverless",
+    "api"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "ytdl-core": "^4.11.5"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

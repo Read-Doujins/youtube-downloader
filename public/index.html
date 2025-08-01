@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            font-weight: 600;
+        }
+
+        .youtube-icon {
+            display: inline-block;
+            color: #ff0000;
+            margin-right: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="url"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .quality-group {
+            margin-bottom: 30px;
+        }
+
+        .quality-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .quality-option {
+            position: relative;
+        }
+
+        .quality-option input[type="radio"] {
+            display: none;
+        }
+
+        .quality-option label {
+            display: block;
+            padding: 15px 12px;
+            background: #f8f9fa;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quality-option label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .quality-option label:hover::before {
+            left: 100%;
+        }
+
+        .quality-option input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .quality-option label:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .quality-option input[type="radio"]:checked + label:hover {
+            background: #5a6fd8;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c66;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #6c6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .info {
+            background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info::before {
+            content: '💡';
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 20px;
+            opacity: 0.5;
+        }
+
+        .format-options {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fafbfc;
+            border-radius: 12px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .format-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .format-option {
+            position: relative;
+        }
+
+        .format-option input[type="radio"] {
+            display: none;
+        }
+
+        .format-option label {
+            display: block;
+            padding: 12px 15px;
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .format-option input[type="radio"]:checked + label {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+            transform: scale(1.02);
+        }
+
+        .format-option label:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .format-option input[type="radio"]:checked + label:hover {
+            background: #218838;
+        }
+
+        .video-info {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .video-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .video-info p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span class="youtube-icon">▶</span>
+            YouTube Video Downloader
+        </h1>
+        
+        <form id="downloadForm">
+            <div class="input-group">
+                <label for="videoUrl">URL วิดีโอ YouTube:</label>
+                <input 
+                    type="url" 
+                    id="videoUrl" 
+                    placeholder="https://www.youtube.com/watch?v=..." 
+                    required
+                >
+            </div>
+
+            <div class="quality-group">
+                <label>คุณภาพวิดีโอ:</label>
+                <div class="quality-options">
+                    <div class="quality-option">
+                        <input type="radio" id="quality4k" name="quality" value="2160">
+                        <label for="quality4k">4K (2160p)</label>
+                    </div>
+                    <div class="quality-option">
+                        <input type="radio" id="quality1440" name="quality" value="1440">
+                        <label for="quality1440">2K (1440p)</label>
+                    </div>
+                    <div class="quality-option">
+                        <input type="radio" id="quality1080" name="quality" value="1080">
+                        <label for="quality1080">Full HD (1080p)</label>
+                    </div>
+                    <div class="quality-option">
+                        <input type="radio" id="quality720" name="quality" value="720" checked>
+                        <label for="quality720">HD (720p)</label>
+                    </div>
+                    <div class="quality-option">
+                        <input type="radio" id="quality480" name="quality" value="480">
+                        <label for="quality480">SD (480p)</label>
+                    </div>
+                    <div class="quality-option">
+                        <input type="radio" id="quality360" name="quality" value="360">
+                        <label for="quality360">Low (360p)</label>
+                    </div>
+                    <div class="quality-option">
+                        <input type="radio" id="qualityAudio" name="quality" value="audio">
+                        <label for="qualityAudio">🎵 เสียงอย่างเดียว</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="format-options">
+                <div class="format-title">
+                    📁 รูปแบบไฟล์:
+                </div>
+                <div class="format-grid">
+                    <div class="format-option">
+                        <input type="radio" id="formatMp4" name="format" value="mp4" checked>
+                        <label for="formatMp4">MP4 (แนะนำ)</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="formatWebm" name="format" value="webm">
+                        <label for="formatWebm">WebM</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="formatMkv" name="format" value="mkv">
+                        <label for="formatMkv">MKV</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="formatMp3" name="format" value="mp3">
+                        <label for="formatMp3">MP3 (เสียง)</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="formatM4a" name="format" value="m4a">
+                        <label for="formatM4a">M4A (เสียง)</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="formatWav" name="format" value="wav">
+                        <label for="formatWav">WAV (เสียง)</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="download-btn" id="downloadBtn">
+                ดาวน์โหลดวิดีโอ
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>กำลังประมวลผล...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+        
+        <div class="video-info" id="videoInfo">
+            <h3 id="videoTitle"></h3>
+            <p><strong>ช่อง:</strong> <span id="videoChannel"></span></p>
+            <p><strong>ระยะเวลา:</strong> <span id="videoDuration"></span></p>
+            <p><strong>จำนวนผู้ชม:</strong> <span id="videoViews"></span></p>
+        </div>
+
+        <div class="info">
+            <strong>หมายเหตุ:</strong> เครื่องมือนี้ใช้สำหรับการดาวน์โหลดวิดีโอที่ไม่ละเมิดลิขสิทธิ์เท่านั้น กรุณาเคารพสิทธิของเจ้าของเนื้อหา
+        </div>
+    </div>
+
+    <script>
+        class YouTubeDownloader {
+            constructor() {
+                this.form = document.getElementById('downloadForm');
+                this.urlInput = document.getElementById('videoUrl');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.loading = document.getElementById('loading');
+                this.error = document.getElementById('error');
+                this.success = document.getElementById('success');
+                this.videoInfo = document.getElementById('videoInfo');
+                
+                this.init();
+            }
+
+            init() {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+                this.urlInput.addEventListener('input', () => this.hideMessages());
+            }
+
+            hideMessages() {
+                this.error.style.display = 'none';
+                this.success.style.display = 'none';
+                this.videoInfo.style.display = 'none';
+            }
+
+            showLoading() {
+                this.loading.style.display = 'block';
+                this.downloadBtn.disabled = true;
+                this.hideMessages();
+            }
+
+            hideLoading() {
+                this.loading.style.display = 'none';
+                this.downloadBtn.disabled = false;
+            }
+
+            showError(message) {
+                this.error.textContent = message;
+                this.error.style.display = 'block';
+                this.hideLoading();
+            }
+
+            showSuccess(message) {
+                this.success.textContent = message;
+                this.success.style.display = 'block';
+                this.hideLoading();
+            }
+
+            extractVideoId(url) {
+                const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+                const match = url.match(regex);
+                return match ? match[1] : null;
+            }
+
+            async getVideoInfo(videoId) {
+                try {
+                    // เรียก Vercel API
+                    const response = await fetch(`/api/info?videoId=${videoId}`);
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        throw new Error(data.error);
+                    }
+                    
+                    return {
+                        title: data.data.title,
+                        channel: data.data.author,
+                        duration: this.formatDuration(data.data.lengthSeconds),
+                        views: this.formatViews(data.data.viewCount),
+                        thumbnail: data.data.thumbnails?.maxres?.url || data.data.thumbnails?.high?.url,
+                        availableQualities: data.data.availableQualities,
+                        formats: data.data.formats
+                    };
+                } catch (error) {
+                    throw new Error(error.message || 'ไม่สามารถดึงข้อมูลวิดีโอได้');
+                }
+            }
+
+            formatDuration(seconds) {
+                const hours = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                
+                if (hours > 0) {
+                    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            formatViews(views) {
+                if (views >= 1000000000) {
+                    return (views / 1000000000).toFixed(1) + 'B';
+                } else if (views >= 1000000) {
+                    return (views / 1000000).toFixed(1) + 'M';
+                } else if (views >= 1000) {
+                    return (views / 1000).toFixed(1) + 'K';
+                }
+                return views?.toLocaleString() || '0';
+            }
+
+            displayVideoInfo(info) {
+                document.getElementById('videoTitle').textContent = info.title;
+                document.getElementById('videoChannel').textContent = info.channel;
+                document.getElementById('videoDuration').textContent = info.duration;
+                document.getElementById('videoViews').textContent = info.views;
+                this.videoInfo.style.display = 'block';
+            }
+
+            async downloadVideo(videoId, quality) {
+                // ในการใช้งานจริง คุณจะต้องใช้ ytdl หรือ API อื่นๆ
+                // ที่นี่เป็นเพียงการจำลอง
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        // จำลองการดาวน์โหลด
+                        const success = Math.random() > 0.2; // 80% โอกาสสำเร็จ
+                        if (success) {
+                            // สร้าग link ดาวน์โหลดจำลอง
+                            const filename = `video_${videoId}_${quality}.mp4`;
+                            const blob = new Blob(['สำหรับการทดสอบ'], {type: 'video/mp4'});
+                            const url = URL.createObjectURL(blob);
+                            
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            
+                            resolve('ดาวน์โหลดเสร็จสิ้น!');
+                        } else {
+                            reject('เกิดข้อผิดพลาดในการดาวน์โหลด');
+                        }
+                    }, 2000);
+                });
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const url = this.urlInput.value.trim();
+                const quality = document.querySelector('input[name="quality"]:checked').value;
+                const format = document.querySelector('input[name="format"]:checked').value;
+
+                if (!url) {
+                    this.showError('กรุณาใส่ URL วิดีโอ YouTube');
+                    return;
+                }
+
+                const videoId = this.extractVideoId(url);
+                if (!videoId) {
+                    this.showError('URL ไม่ถูกต้อง กรุณาใส่ URL วิดีโอ YouTube ที่ถูกต้อง');
+                    return;
+                }
+
+                this.showLoading();
+
+                try {
+                    // ดึงข้อมูลวิดีโอ
+                    const videoInfo = await this.getVideoInfo(videoId);
+                    this.displayVideoInfo(videoInfo);
+
+                    // ดาวน์โหลดวิดีโอ
+                    const result = await this.downloadVideo(videoId, quality, format);
+                    this.showSuccess(result);
+
+                } catch (error) {
+                    this.showError(error.toString());
+                }
+            }
+        }
+
+        // เริ่มต้นแอพ
+        document.addEventListener('DOMContentLoaded', () => {
+            new YouTubeDownloader();
+        });
+    </script>
+</body>
+</html>
