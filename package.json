@@ -19,6 +19,7 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "ytdl-core": "^4.11.5"
   },
   "engines": {
