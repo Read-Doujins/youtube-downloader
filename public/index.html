@@ -488,7 +488,7 @@
             async getVideoInfo(videoId) {
                 try {
                     // เรียก Vercel API
-                    const response = await fetch(`/api/info?videoId=${videoId}`);
+                    const response = await fetch(`/api/info.js?videoId=${videoId}`);
                     const data = await response.json();
                     
                     if (!data.success) {
