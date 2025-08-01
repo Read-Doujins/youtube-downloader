@@ -2,6 +2,20 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/info.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 30
+      }
+    },
+    {
+      "src": "api/download.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 300
+      }
+    },
+    {
       "src": "api/**/*.js",
       "use": "@vercel/node"
     },
@@ -20,14 +34,6 @@
       "dest": "/public/$1"
     }
   ],
-  "functions": {
-    "api/info.js": {
-      "maxDuration": 30
-    },
-    "api/download.js": {
-      "maxDuration": 300
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
